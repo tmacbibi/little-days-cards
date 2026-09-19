@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="人脈名片" />
   <title>人脈名片</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.5.0" />
-  <link rel="icon" href="icons/icon-192.png?v=0.5.0" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.6.0" />
+  <link rel="icon" href="icons/icon-192.png?v=0.6.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -33,9 +33,9 @@
           <p>拍完立即收進待整理匣，不用站在原地等辨識；一次拿很多張也能連續掃。</p>
         </div>
         <div class="capture-actions">
-          <button class="action-tile scan" id="importCenterBtn">
-            <span class="action-symbol">↥</span>
-            <span><b>AI 匯入中心</b><small>照片、Excel、CSV、vCard…</small></span>
+          <button class="action-tile scan" id="aiAssistantBtn">
+            <span class="action-symbol">✦</span>
+            <span><b>AI 人脈助理</b><small>預設免費 · 丟照片或檔案給 ChatGPT</small></span>
           </button>
           <button class="action-tile quick" id="quickAddBtn">
             <span class="action-symbol">＋</span>
@@ -135,6 +135,8 @@
   <input id="restoreInput" type="file" accept="application/json,.json" hidden />
   <input id="vcfInput" type="file" accept=".vcf,text/vcard,text/x-vcard" multiple hidden />
   <input id="importFilesInput" type="file" accept="image/*,.csv,.xlsx,.xls,.vcf,.json,.pdf,.txt,text/csv,application/json,application/pdf" multiple hidden />
+  <input id="aiFilesInput" type="file" accept="image/*,.csv,.xlsx,.xls,.vcf,.json,.pdf,.txt,text/csv,application/json,application/pdf" multiple hidden />
+  <input id="aiResultFileInput" type="file" accept=".json,application/json,text/plain" hidden />
 
   <dialog id="captureChoiceDialog" class="sheet-dialog compact-dialog">
     <section class="sheet-card compact-sheet">
@@ -144,8 +146,8 @@
         <button type="button" class="icon-button" data-close-dialog="captureChoiceDialog">×</button>
       </div>
       <div class="choice-grid">
-        <button class="choice-card scan" id="choiceImportBtn">
-          <span class="choice-icon">↥</span><b>AI 匯入中心</b><small>相簿、CSV、Excel、vCard、JSON、PDF 都從這裡進來</small>
+        <button class="choice-card scan" id="choiceAiBtn">
+          <span class="choice-icon">✦</span><b>AI 人脈助理</b><small>預設免費模式，把照片或檔案交給 ChatGPT 整理</small>
         </button>
         <button class="choice-card" id="choiceScanBtn">
           <span class="choice-icon">▣</span><b>現場拍一張</b><small>先收進待整理匣，不必等辨識</small>
@@ -154,6 +156,108 @@
           <span class="choice-icon">＋</span><b>快速新增</b><small>沒有名片，也可以先記住這個人</small>
         </button>
       </div>
+    </section>
+  </dialog>
+
+  <dialog id="aiAssistantDialog" class="sheet-dialog">
+    <section class="sheet-card ai-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">AI PEOPLE ASSISTANT</div><h2>AI 人脈助理</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="aiAssistantDialog">×</button>
+      </div>
+
+      <div class="ai-mode-card free active" id="freeModeCard">
+        <div class="ai-mode-icon">✓</div>
+        <div>
+          <div class="ai-mode-title"><strong>免費模式</strong><span>預設</span></div>
+          <p>不呼叫 OpenAI API，不會產生額外 API 費用。把資料交給你現在使用的 ChatGPT，再把整理結果貼回 App。</p>
+        </div>
+      </div>
+
+      <button class="ai-mode-card api" id="paidModeBtn">
+        <div class="ai-mode-icon">⚡</div>
+        <div>
+          <div class="ai-mode-title"><strong>全自動 API 模式</strong><span>可能付費</span></div>
+          <p>未來可在 App 內直接分析並自動回填，但 OpenAI API 與 ChatGPT 訂閱分開計費。</p>
+        </div>
+        <i>›</i>
+      </button>
+
+      <div class="ai-chat">
+        <div class="ai-bubble assistant">
+          <span class="ai-avatar">✦</span>
+          <div><strong>把資料丟給我</strong><p>名片照片、Excel、CSV、PDF、vCard 都可以。你也可以補一句「這些都是今天台中港會議認識的」。</p></div>
+        </div>
+
+        <div id="aiAttachmentList" class="ai-attachment-list"></div>
+
+        <button class="ai-attach-btn" id="aiAttachBtn"><span>＋</span>加入照片或檔案</button>
+
+        <label class="ai-context-box">
+          <span>想補充什麼？（可不填）</span>
+          <textarea id="aiContextText" rows="3" placeholder="例如：這 6 張都是今天交通局會議拿到的，請標記「新北、交通工程」。"></textarea>
+        </label>
+
+        <button class="ai-free-send" id="aiFreeSendBtn">
+          <span>✦</span>
+          <span><b>免費交給 ChatGPT 整理</b><small>會開啟分享選單；選 ChatGPT 後把結果貼回來</small></span>
+        </button>
+
+        <div class="ai-return-box">
+          <div class="ai-return-head">
+            <div><strong>ChatGPT 整理好了？</strong><span>貼上結果或選擇 ChatGPT 產生的 JSON</span></div>
+          </div>
+          <textarea id="aiResultPaste" rows="5" placeholder='把 ChatGPT 回傳的 JSON 貼在這裡…'></textarea>
+          <div class="ai-return-actions">
+            <button class="secondary-button" id="aiResultFileBtn">選 JSON 檔</button>
+            <button class="primary-button" id="aiApplyResultBtn">解析並回填</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-note">
+        <strong>免費模式怎麼運作？</strong>
+        <span>App 不會偷偷呼叫付費 API。你把檔案分享給 ChatGPT，ChatGPT 整理成 Little Days 格式，再貼回 App；App 會自動進入匯入預覽、去重、分類並寫入欄位。</span>
+      </div>
+    </section>
+  </dialog>
+
+  <dialog id="apiCostDialog" class="sheet-dialog compact-dialog">
+    <section class="sheet-card cost-warning-sheet">
+      <div class="sheet-handle"></div>
+      <div class="cost-warning-icon">!</div>
+      <div class="cost-warning-copy">
+        <div class="eyebrow">可能產生額外費用</div>
+        <h2>這不是 ChatGPT 訂閱內的免費額度</h2>
+        <p>「全自動 API 模式」會使用 OpenAI API。API 與 ChatGPT Plus / Pro 是分開計費的，實際分析照片或檔案時可能產生費用。</p>
+      </div>
+      <div class="cost-warning-points">
+        <div><b>目前預設仍是免費模式</b><span>關閉這個視窗不會改變任何設定。</span></div>
+        <div><b>現在按下同意也不會立刻扣款</b><span>目前尚未設定安全後端與 API Key；在真正連線前不會呼叫付費 API。</span></div>
+        <div><b>未來正式啟用前還會再確認</b><span>我會保留清楚的費用警示與可關閉開關。</span></div>
+      </div>
+      <label class="cost-check"><input id="apiCostAck" type="checkbox" /> <span>我知道 API 可能另外收費，仍想查看全自動模式。</span></label>
+      <div class="sheet-footer">
+        <button class="secondary-button" id="keepFreeBtn">繼續使用免費模式</button>
+        <div class="footer-spacer"></div>
+        <button class="primary-button danger-confirm" id="continueApiBtn" disabled>我了解，查看設定</button>
+      </div>
+    </section>
+  </dialog>
+
+  <dialog id="apiSetupDialog" class="sheet-dialog compact-dialog">
+    <section class="sheet-card compact-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">API MODE</div><h2>全自動 AI 尚未連線</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="apiSetupDialog">×</button>
+      </div>
+      <div class="api-pending-card">
+        <strong>目前不會產生 API 費用</strong>
+        <span>這個版本只先做好介面與安全警示。等你日後明確決定要使用付費 API，我們才會建立後端並再次請你確認。</span>
+      </div>
+      <button class="primary-button full-width" id="backToFreeBtn">回到免費模式</button>
     </section>
   </dialog>
 
@@ -460,18 +564,19 @@
       </div>
       <div class="tool-list">
         <button class="tool-row" id="myCardToolBtn"><span><b>我的數位名片</b><small>QR＋vCard，一鍵分享你的聯絡方式</small></span><i>›</i></button>
-        <button class="tool-row" id="importCenterToolBtn"><span><b>AI 匯入中心</b><small>照片、CSV、Excel、vCard、JSON、PDF</small></span><i>›</i></button>
+        <button class="tool-row" id="aiAssistantToolBtn"><span><b>AI 人脈助理</b><small>預設免費，把照片／檔案交給 ChatGPT 整理</small></span><i>›</i></button>
+        <button class="tool-row" id="importCenterToolBtn"><span><b>檔案匯入中心</b><small>CSV、Excel、vCard、JSON、PDF</small></span><i>›</i></button>
         <button class="tool-row" id="backupBtn"><span><b>備份與資料安全</b><small>完整備份、恢復、上次備份狀態</small></span><i>›</i></button>
         <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
       </div>
       <div class="about-card">
-        <strong>人脈名片 v0.5.0</strong>
+        <strong>人脈名片 v0.6.0</strong>
         <span>本機優先。OCR 在裝置上執行；名片資料不會因版本更新而清空。請定期備份。</span>
       </div>
     </section>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=0.5.0" defer></script>
+  <script src="app.js?v=0.6.0" defer></script>
 </body>
 </html>
