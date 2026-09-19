@@ -15,6 +15,20 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: node --check v03.js
+      - name: Check DOM ids used by JavaScript
+        run: |
+          python - <<'PY'
+          import re, sys
+          js=open('v03.js',encoding='utf-8').read()
+          html=open('index.html',encoding='utf-8').read()
+          used=set(re.findall(r"\$\('([^']+)'\)",js))
+          ids=set(re.findall(r'id="([^"]+)"',html))
+          missing=sorted(used-ids)
+          print("JS ids:",len(used),"HTML ids:",len(ids))
+          if missing:
+              print("Missing ids:",missing)
+              sys.exit(1)
+          PY
       - name: Verify required files
         run: |
           test -f index.html
