@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="人脈名片" />
   <title>人脈名片</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.7.0" />
-  <link rel="icon" href="icons/icon-192.png?v=0.7.0" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.8.0" />
+  <link rel="icon" href="icons/icon-192.png?v=0.8.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -104,7 +104,7 @@
       <section class="section-head">
         <div>
           <div class="eyebrow">PEOPLE</div>
-          <h3 id="listTitle">所有名片</h3>
+          <h3 id="listTitle">所有人脈</h3>
         </div>
         <select id="sortSelect" class="sort-select" aria-label="排序">
           <option value="updated-desc">最近更新</option>
@@ -202,67 +202,111 @@
   <dialog id="aiAssistantDialog" class="sheet-dialog">
     <section class="sheet-card ai-sheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-header">
-        <div><div class="eyebrow">AI PEOPLE ASSISTANT</div><h2>AI 人脈助理</h2></div>
+      <div class="sheet-header ai-sheet-header">
+        <div>
+          <div class="eyebrow">AI PEOPLE ASSISTANT</div>
+          <h2>AI 人脈助理</h2>
+          <p>選一種處理方案，再用三個步驟完成整理。</p>
+        </div>
         <button type="button" class="icon-button" data-close-dialog="aiAssistantDialog">×</button>
       </div>
 
-      <div class="ai-mode-card free active" id="freeModeCard">
-        <div class="ai-mode-icon">✓</div>
-        <div>
-          <div class="ai-mode-title"><strong>免費模式</strong><span>預設</span></div>
-          <p>不呼叫付費 API。把資料分享給手機裡可用的 AI App；目前你的 iPhone 可直接使用 Claude。</p>
+      <section class="ai-method-section">
+        <div class="ai-section-title">
+          <div><span class="section-no">A</span><strong>智慧處理方案</strong></div>
+          <small>先決定怎麼處理，不會影響下面的操作步驟。</small>
         </div>
-      </div>
 
-      <button class="ai-mode-card api" id="paidModeBtn">
-        <div class="ai-mode-icon">⚡</div>
-        <div>
-          <div class="ai-mode-title"><strong>全自動 API 模式</strong><span>可能付費</span></div>
-          <p>未來可在 App 內直接分析並自動回填，但 OpenAI API 與 ChatGPT 訂閱分開計費。</p>
+        <div class="ai-mode-grid">
+          <div class="ai-mode-card free active" id="freeModeCard">
+            <div class="ai-mode-icon">✓</div>
+            <div>
+              <div class="ai-mode-title"><strong>標準智慧模式</strong><span>免費・預設</span></div>
+              <p>不呼叫付費 API。把資料分享給手機可用的 AI App，目前建議使用 Claude。</p>
+            </div>
+          </div>
+
+          <button class="ai-mode-card api" id="paidModeBtn">
+            <div class="ai-mode-icon">⚡</div>
+            <div>
+              <div class="ai-mode-title"><strong>進階自動化模式</strong><span>可能付費</span></div>
+              <p>未來可在 App 內直接分析並自動回填，啟用前會再次明確提醒費用。</p>
+            </div>
+            <i>›</i>
+          </button>
         </div>
-        <i>›</i>
-      </button>
+      </section>
 
-      <div class="ai-chat">
-        <div class="ai-bubble assistant">
-          <span class="ai-avatar">✦</span>
-          <div><strong>三步就好</strong><p>① 加資料　② 分享給 AI　③ 回來按「從剪貼簿回填」。不用存 JSON、也不用找檔案。</p></div>
+      <section class="ai-workflow-section">
+        <div class="ai-section-title">
+          <div><span class="section-no">B</span><strong>AI 整理流程</strong></div>
+          <small>真正要做的只有這三步。</small>
+        </div>
+
+        <div class="ai-steps">
+          <div class="ai-step-card">
+            <div class="step-top"><span class="step-number">1</span><span class="step-word">STEP 1</span></div>
+            <strong>加入資料</strong>
+            <small>照片、Excel、PDF 或其他檔案</small>
+          </div>
+          <div class="step-arrow">›</div>
+          <div class="ai-step-card">
+            <div class="step-top"><span class="step-number">2</span><span class="step-word">STEP 2</span></div>
+            <strong>交給 AI</strong>
+            <small>從分享選單選 Claude 等 AI App</small>
+          </div>
+          <div class="step-arrow">›</div>
+          <div class="ai-step-card">
+            <div class="step-top"><span class="step-number">3</span><span class="step-word">STEP 3</span></div>
+            <strong>一鍵回填</strong>
+            <small>複製結果，回 App 按一次即可</small>
+          </div>
         </div>
 
         <div id="aiAttachmentList" class="ai-attachment-list"></div>
 
-        <button class="ai-attach-btn" id="aiAttachBtn"><span>＋</span>加入照片或檔案</button>
+        <button class="ai-attach-btn" id="aiAttachBtn">
+          <span>＋</span>
+          <div><b>加入照片或檔案</b><small>可一次選多張照片或多個檔案</small></div>
+        </button>
 
         <label class="ai-context-box">
-          <span>想補充什麼？（可不填）</span>
+          <span>情境補充 <em>選填</em></span>
           <textarea id="aiContextText" rows="3" placeholder="例如：這 6 張都是今天交通局會議拿到的，請標記「新北、交通工程」。"></textarea>
         </label>
 
         <button class="ai-free-send" id="aiFreeSendBtn">
           <span>✦</span>
-          <span><b>分享給 AI 整理</b><small>在分享選單選 Claude 或其他可用 AI App</small></span>
+          <span><b>分享給 AI 助理</b><small>目前建議 Claude，也可選其他支援分享的 AI App</small></span>
+          <i>›</i>
+        </button>
+      </section>
+
+      <section class="ai-result-section">
+        <div class="ai-section-title">
+          <div><span class="section-no">C</span><strong>整理結果回填</strong></div>
+          <small>AI 整理完成後，回來只按一次。</small>
+        </div>
+
+        <button class="ai-clipboard-return" id="aiClipboardBtn">
+          <span>↙</span>
+          <div><b>從剪貼簿直接回填</b><small>不用另存檔案，也不用再次匯入</small></div>
+          <i>›</i>
         </button>
 
-        <div class="ai-return-box">
-          <div class="ai-return-head">
-            <div><strong>AI 整理好了？</strong><span>在 AI App 複製它回傳的結果，回來只按一次。</span></div>
+        <details class="ai-manual-fallback">
+          <summary>剪貼簿讀不到？改用手動貼上</summary>
+          <textarea id="aiResultPaste" rows="5" placeholder='把 AI 回傳的 JSON 貼在這裡…'></textarea>
+          <div class="ai-return-actions">
+            <button class="secondary-button" id="aiResultFileBtn">選 JSON 檔</button>
+            <button class="primary-button" id="aiApplyResultBtn">解析並回填</button>
           </div>
-          <button class="ai-clipboard-return" id="aiClipboardBtn"><span>↙</span><div><b>從剪貼簿直接回填</b><small>不需要儲存檔案、不需要再匯入</small></div></button>
-          <details class="ai-manual-fallback">
-            <summary>剪貼簿讀不到？改用手動貼上</summary>
-            <textarea id="aiResultPaste" rows="5" placeholder='把 AI 回傳的 JSON 貼在這裡…'></textarea>
-            <div class="ai-return-actions">
-              <button class="secondary-button" id="aiResultFileBtn">選 JSON 檔</button>
-              <button class="primary-button" id="aiApplyResultBtn">解析並回填</button>
-            </div>
-          </details>
-        </div>
-      </div>
+        </details>
+      </section>
 
-      <div class="info-note">
+      <div class="info-note ai-free-note">
         <strong>免費模式不會偷偷扣費</strong>
-        <span>App 只負責把附件與 Little Days 整理指令分享出去。AI 回傳後，你複製結果並按一次「從剪貼簿直接回填」即可。</span>
+        <span>只有你主動進入「進階自動化模式」才會看到付費 API 選項，而且啟用前仍會再次確認。</span>
       </div>
     </section>
   </dialog>
@@ -616,13 +660,13 @@
         <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
       </div>
       <div class="about-card">
-        <strong>人脈名片 v0.7.0</strong>
+        <strong>人脈名片 v0.8.0</strong>
         <span>本機優先。OCR 在裝置上執行；名片資料不會因版本更新而清空。請定期備份。</span>
       </div>
     </section>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=0.7.0" defer></script>
+  <script src="app.js?v=0.8.0" defer></script>
 </body>
 </html>
