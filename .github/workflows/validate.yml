@@ -1,0 +1,26 @@
+name: Validate App
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check v03.js
+      - name: Verify required files
+        run: |
+          test -f index.html
+          test -f app.js
+          test -f v03.js
+          test -f v03.css
+          test -f manifest.webmanifest
+          test -f sw.js
+          test -f icons/icon-180.png
