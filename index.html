@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f3ea" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="人脈名片" />
+  <title>人脈名片</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Little Days</div>
+        <h1>人脈名片</h1>
+      </div>
+      <button class="icon-button" id="settingsBtn" aria-label="設定">⋯</button>
+    </header>
+
+    <main>
+      <section class="hero-card">
+        <div class="hero-copy">
+          <span class="hero-badge">把名片變成可搜尋的人脈</span>
+          <h2>找到人，比找到那張名片更重要。</h2>
+          <p>用人名、公司、專案、場合或標籤快速找到聯絡人。</p>
+        </div>
+        <button class="primary-button" id="scanBtn">＋ 掃描／新增名片</button>
+      </section>
+
+      <section class="search-section">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input id="searchInput" type="search" placeholder="搜尋姓名、公司、職稱、專案、標籤…" autocomplete="off" />
+          <button id="clearSearch" class="clear-search" aria-label="清除搜尋">×</button>
+        </div>
+        <div class="filter-row" id="filterRow">
+          <button class="filter-chip active" data-filter="all">全部</button>
+          <button class="filter-chip" data-filter="favorite">★ 最愛</button>
+          <button class="filter-chip" data-filter="followup">待追蹤</button>
+          <button class="filter-chip" data-filter="recent">最近新增</button>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="統計">
+        <article class="stat-card"><strong id="totalCount">0</strong><span>名聯絡人</span></article>
+        <article class="stat-card"><strong id="favoriteCount">0</strong><span>最愛</span></article>
+        <article class="stat-card"><strong id="followupCount">0</strong><span>待追蹤</span></article>
+      </section>
+
+      <section class="section-head">
+        <div>
+          <div class="eyebrow">CONTACTS</div>
+          <h3 id="listTitle">所有名片</h3>
+        </div>
+        <select id="sortSelect" class="sort-select" aria-label="排序">
+          <option value="updated-desc">最近更新</option>
+          <option value="created-desc">最近新增</option>
+          <option value="name-asc">姓名 A–Z</option>
+          <option value="company-asc">公司 A–Z</option>
+        </select>
+      </section>
+
+      <section id="contactsList" class="contacts-list" aria-live="polite"></section>
+
+      <section id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">▤</div>
+        <h3>還沒有名片</h3>
+        <p>先加入第一張。之後就不用再翻抽屜或相簿找人。</p>
+        <button class="secondary-button" id="emptyAddBtn">新增第一張名片</button>
+        <button class="ghost-button" id="seedDemoBtn">載入示範資料</button>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主要導覽">
+      <button class="nav-item active" data-nav="contacts"><span>▤</span><b>名片</b></button>
+      <button class="nav-item" data-nav="followup"><span>✓</span><b>追蹤</b></button>
+      <button class="nav-item add-fab" id="fabAdd" aria-label="新增名片">＋</button>
+      <button class="nav-item" data-nav="favorites"><span>★</span><b>最愛</b></button>
+      <button class="nav-item" data-nav="tools"><span>⚙</span><b>工具</b></button>
+    </nav>
+  </div>
+
+  <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
+  <input id="photoInput" type="file" accept="image/*" hidden />
+  <input id="restoreInput" type="file" accept="application/json,.json" hidden />
+
+  <dialog id="editDialog" class="sheet-dialog">
+    <form id="contactForm" method="dialog" class="sheet-card">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div>
+          <div class="eyebrow">CONTACT</div>
+          <h2 id="editTitle">新增名片</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-dialog="editDialog">×</button>
+      </div>
+
+      <div class="photo-panel">
+        <div id="photoPreview" class="photo-preview"><span>名片照片</span></div>
+        <div class="photo-actions">
+          <button type="button" class="secondary-button" id="takePhotoBtn">拍照</button>
+          <button type="button" class="ghost-button" id="choosePhotoBtn">相簿</button>
+          <button type="button" class="ghost-button danger-text hidden" id="removePhotoBtn">移除</button>
+        </div>
+      </div>
+
+      <div class="notice-card">
+        <strong>第一版掃描流程</strong>
+        <span>先保存名片照片，再補齊重要欄位。OCR 自動辨識會在下一版加入。</span>
+      </div>
+
+      <input id="contactId" type="hidden" />
+      <input id="photoData" type="hidden" />
+
+      <div class="form-grid">
+        <label class="field required"><span>姓名</span><input id="name" required placeholder="例如：王小明" /></label>
+        <label class="field"><span>公司</span><input id="company" placeholder="公司／機關" /></label>
+        <label class="field"><span>職稱</span><input id="title" placeholder="職稱" /></label>
+        <label class="field"><span>部門</span><input id="department" placeholder="部門／單位" /></label>
+        <label class="field"><span>手機</span><input id="mobile" inputmode="tel" placeholder="09xx-xxx-xxx" /></label>
+        <label class="field"><span>電話</span><input id="phone" inputmode="tel" placeholder="公司電話／分機" /></label>
+        <label class="field wide"><span>Email</span><input id="email" type="email" inputmode="email" placeholder="name@example.com" /></label>
+        <label class="field wide"><span>LINE / 通訊</span><input id="messenger" placeholder="LINE ID、Teams、WeChat…" /></label>
+        <label class="field wide"><span>網站</span><input id="website" inputmode="url" placeholder="https://" /></label>
+        <label class="field wide"><span>地址</span><input id="address" placeholder="公司地址" /></label>
+      </div>
+
+      <div class="subsection-title">你是在哪裡認識他的？</div>
+      <div class="form-grid">
+        <label class="field"><span>場合</span><input id="context" placeholder="會議、活動、拜訪…" /></label>
+        <label class="field"><span>專案</span><input id="project" placeholder="例如：汐科改善案" /></label>
+        <label class="field wide"><span>標籤</span><input id="tags" placeholder="以逗號分隔，例如：顧問, 新北, 公部門" /></label>
+        <label class="field"><span>下次追蹤</span><input id="followUpDate" type="date" /></label>
+        <label class="toggle-field"><input id="favorite" type="checkbox" /><span>★ 設為最愛</span></label>
+        <label class="field wide"><span>備註</span><textarea id="notes" rows="4" placeholder="記下對方關心的事、後續待辦、個人特徵…"></textarea></label>
+      </div>
+
+      <div class="sheet-footer">
+        <button type="button" class="ghost-button danger-text hidden" id="deleteBtn">刪除</button>
+        <div class="footer-spacer"></div>
+        <button type="button" class="secondary-button" data-close-dialog="editDialog">取消</button>
+        <button type="submit" class="primary-button">儲存名片</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="sheet-dialog">
+    <section class="sheet-card detail-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div>
+          <div class="eyebrow">CONTACT DETAIL</div>
+          <h2 id="detailName"></h2>
+        </div>
+        <button type="button" class="icon-button" data-close-dialog="detailDialog">×</button>
+      </div>
+      <div id="detailContent"></div>
+      <div class="sheet-footer sticky">
+        <button class="secondary-button" id="detailFavoriteBtn">☆ 最愛</button>
+        <button class="secondary-button" id="detailEditBtn">編輯</button>
+        <button class="primary-button" id="detailShareBtn">分享聯絡人</button>
+      </div>
+    </section>
+  </dialog>
+
+  <dialog id="toolsDialog" class="sheet-dialog">
+    <section class="sheet-card tools-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">DATA</div><h2>資料工具</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="toolsDialog">×</button>
+      </div>
+      <div class="tool-list">
+        <button class="tool-row" id="backupBtn"><span><b>立即備份</b><small>匯出 JSON，包含名片資料與照片</small></span><i>›</i></button>
+        <button class="tool-row" id="restoreBtn"><span><b>恢復備份</b><small>從 JSON 匯入，不會偷偷覆蓋</small></span><i>›</i></button>
+        <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
+      </div>
+      <div class="about-card">
+        <strong>人脈名片 v0.2.0</strong>
+        <span>資料預設只存在這台裝置。建議定期做 JSON 備份。</span>
+      </div>
+    </section>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
