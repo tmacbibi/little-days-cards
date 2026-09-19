@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="人脈名片" />
   <title>人脈名片</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.9.0" />
-  <link rel="icon" href="icons/icon-192.png?v=0.9.0" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.10.0" />
+  <link rel="icon" href="icons/icon-192.png?v=0.10.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -21,10 +21,7 @@
         <h1>人脈名片</h1>
       </div>
       <div class="topbar-actions">
-        <button class="topbar-mini" id="categoryBtn" aria-label="分類">☰</button>
-        <button class="my-card-pill" id="myCardBtn" aria-label="我的名片">
-          <span class="mini-card-icon">⌁</span><span>我的名片</span>
-        </button>
+        <button class="topbar-more" id="toolsTopBtn" aria-label="更多功能"><span>☰</span><b>更多</b></button>
       </div>
     </header>
 
@@ -61,8 +58,16 @@
         </div>
       </section>
 
+      <section class="category-swipe-section">
+        <div class="category-swipe-head">
+          <strong>人脈分類</strong>
+          <button id="openAllCategoriesBtn">查看全部</button>
+        </div>
+        <div id="homeCategoryRail" class="home-category-rail" aria-label="左右滑動瀏覽人脈分類"></div>
+      </section>
+
       <section class="people-tools">
-        <button id="categoryManageBtn"><span>☰</span><b>分類</b><small id="categoryHint">依公司、領域快速找人</small></button>
+        <button id="myCardBtn"><span>⌁</span><b>我的數位名片</b><small>QR＋vCard，交換聯絡方式</small></button>
         <button id="healthCheckBtn"><span>✦</span><b>AI 人脈健檢</b><small id="healthHint">只看需要你處理的事</small><i id="healthBadge" class="hidden">0</i></button>
       </section>
 
@@ -132,13 +137,8 @@
       </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="主要導覽">
-      <button class="nav-item active" data-nav="contacts"><span>⌁</span><b>人脈</b></button>
-      <button class="nav-item" data-nav="followup"><span>✓</span><b>追蹤</b></button>
-      <button class="nav-item add-fab" id="fabAdd" aria-label="掃描或新增名片">＋</button>
-      <button class="nav-item" data-nav="favorites"><span>★</span><b>最愛</b></button>
-      <button class="nav-item" data-nav="tools"><span>⋯</span><b>更多</b></button>
-    </nav>
+    <button class="floating-add" id="fabAdd" aria-label="新增人脈">＋</button>
+
   </div>
 
   <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
@@ -443,6 +443,9 @@
           <span class="photo-placeholder-icon">▣</span>
           <span>拍一張名片，讓我幫你讀</span>
         </div>
+        <div id="photoPreserveStatus" class="photo-preserve-status hidden">
+          <span>✓ 原始照片已保留</span><span>✓ 名片裁切版已建立</span>
+        </div>
         <div class="photo-actions">
           <button type="button" class="primary-button soft-primary" id="takePhotoBtn">拍照</button>
           <button type="button" class="secondary-button" id="choosePhotoBtn">從相簿</button>
@@ -461,6 +464,7 @@
       <input id="contactId" type="hidden" />
       <input id="scanInboxId" type="hidden" />
       <input id="photoData" type="hidden" />
+      <input id="originalPhotoData" type="hidden" />
       <input id="ocrRawText" type="hidden" />
 
       <div class="form-intro" id="formIntro">
@@ -653,13 +657,13 @@
         <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
       </div>
       <div class="about-card">
-        <strong>人脈名片 v0.9.0</strong>
+        <strong>人脈名片 v0.10.0</strong>
         <span>本機優先。OCR 在裝置上執行；名片資料不會因版本更新而清空。請定期備份。</span>
       </div>
     </section>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=0.9.0" defer></script>
+  <script src="app.js?v=0.10.0" defer></script>
 </body>
 </html>
