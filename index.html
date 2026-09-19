@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="人脈名片" />
   <title>人脈名片</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.3.0" />
-  <link rel="icon" href="icons/icon-192.png?v=0.3.0" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.4.0" />
+  <link rel="icon" href="icons/icon-192.png?v=0.4.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -30,12 +30,12 @@
         <div class="capture-copy">
           <div class="capture-kicker">今天遇到誰？</div>
           <h2>先收進來，細節以後再補。</h2>
-          <p>拍名片後自動辨識重點欄位；不想拍照也能 20 秒快速新增。</p>
+          <p>拍完立即收進待整理匣，不用站在原地等辨識；一次拿很多張也能連續掃。</p>
         </div>
         <div class="capture-actions">
           <button class="action-tile scan" id="scanBtn">
             <span class="action-symbol">▣</span>
-            <span><b>掃描名片</b><small>拍照 → OCR → 確認</small></span>
+            <span><b>掃描名片</b><small>先收下 → 背景整理</small></span>
           </button>
           <button class="action-tile quick" id="quickAddBtn">
             <span class="action-symbol">＋</span>
@@ -63,6 +63,26 @@
         <button class="stat-compact" data-jump-filter="followup"><strong id="followupCount">0</strong><span>待追蹤</span></button>
         <button class="stat-compact" data-jump-filter="favorite"><strong id="favoriteCount">0</strong><span>最愛</span></button>
         <div class="stat-compact static"><strong id="interactionCount">0</strong><span>互動</span></div>
+      </section>
+
+      <section id="scanInboxPanel" class="inbox-panel hidden">
+        <div class="inbox-head">
+          <div>
+            <div class="eyebrow">INBOX</div>
+            <h3>待整理名片 <span id="scanInboxCount">0</span></h3>
+          </div>
+          <span id="scanInboxStatus" class="inbox-status">準備中</span>
+        </div>
+        <div id="scanInboxList" class="inbox-list"></div>
+      </section>
+
+      <section id="backupSafetyCard" class="backup-safety-card">
+        <div class="backup-safety-icon">↥</div>
+        <div>
+          <strong>資料安全</strong>
+          <span id="backupSafetyText">尚未建立完整備份</span>
+        </div>
+        <button class="text-button" id="openBackupCenterBtn">備份</button>
       </section>
 
       <section id="dueSpotlight" class="due-spotlight hidden">
@@ -133,6 +153,36 @@
     </section>
   </dialog>
 
+  <dialog id="scanBatchDialog" class="sheet-dialog">
+    <section class="sheet-card scan-batch-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div>
+          <div class="eyebrow">CAPTURE INBOX</div>
+          <h2>連續掃描</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-dialog="scanBatchDialog">×</button>
+      </div>
+      <div class="batch-message">
+        <strong>拍完就收下，不用等辨識。</strong>
+        <span>辨識會在 App 開著時依序處理；關掉 App 也不會丟失，下一次打開會繼續。</span>
+      </div>
+      <div id="batchPhotoPreview" class="photo-preview batch-preview">
+        <span class="photo-placeholder-icon">▣</span>
+        <span>把名片放滿畫面，背景越乾淨越好</span>
+      </div>
+      <div class="batch-count-row">
+        <span>這次已收下 <b id="batchCount">0</b> 張</span>
+        <span id="batchStatus">可以開始拍</span>
+      </div>
+      <div class="batch-actions">
+        <button type="button" class="primary-button" id="batchCameraBtn">拍一張名片</button>
+        <button type="button" class="secondary-button" id="batchAlbumBtn">從相簿加入</button>
+      </div>
+      <button type="button" class="ghost-button batch-done" id="batchDoneBtn">完成，回首頁</button>
+    </section>
+  </dialog>
+
   <dialog id="editDialog" class="sheet-dialog">
     <form id="contactForm" method="dialog" class="sheet-card">
       <div class="sheet-handle"></div>
@@ -165,6 +215,7 @@
       </div>
 
       <input id="contactId" type="hidden" />
+      <input id="scanInboxId" type="hidden" />
       <input id="photoData" type="hidden" />
       <input id="ocrRawText" type="hidden" />
 
@@ -304,6 +355,39 @@
     </section>
   </dialog>
 
+  <dialog id="backupDialog" class="sheet-dialog">
+    <section class="sheet-card backup-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">DATA SAFETY</div><h2>備份與恢復</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="backupDialog">×</button>
+      </div>
+      <div class="backup-hero">
+        <div class="backup-hero-icon">✓</div>
+        <div>
+          <strong id="backupHeroTitle">本機資料正常</strong>
+          <span id="backupHeroMeta">尚未建立完整備份</span>
+        </div>
+      </div>
+      <div class="backup-summary">
+        <div><strong id="backupPeopleCount">0</strong><span>人脈</span></div>
+        <div><strong id="backupPhotoCount">0</strong><span>照片</span></div>
+        <div><strong id="backupPendingCount">0</strong><span>待整理</span></div>
+      </div>
+      <button class="backup-primary-action" id="fullBackupBtn">
+        <span><b>立即完整備份</b><small>名片、照片、互動紀錄、待整理匣、我的名片與設定</small></span><i>↥</i>
+      </button>
+      <div class="tool-list backup-tools">
+        <button class="tool-row" id="mergeRestoreBtn"><span><b>合併恢復</b><small>保留現有資料，加入／更新備份內容</small></span><i>›</i></button>
+        <button class="tool-row" id="replaceRestoreBtn"><span><b>整份取代</b><small>先建立恢復前備份，再用備份檔取代目前資料</small></span><i>›</i></button>
+      </div>
+      <div class="info-note">
+        <strong>建議每 30 天備份一次</strong>
+        <span>iPhone 可用分享表直接存到「檔案 / iCloud Drive」或 Google Drive。備份檔含 schema version，之後新版仍可轉換。</span>
+      </div>
+    </section>
+  </dialog>
+
   <dialog id="toolsDialog" class="sheet-dialog">
     <section class="sheet-card tools-sheet">
       <div class="sheet-handle"></div>
@@ -314,18 +398,17 @@
       <div class="tool-list">
         <button class="tool-row" id="myCardToolBtn"><span><b>我的數位名片</b><small>QR＋vCard，一鍵分享你的聯絡方式</small></span><i>›</i></button>
         <button class="tool-row" id="importVcfBtn"><span><b>匯入 vCard</b><small>從 iPhone／其他名片工具匯入 .vcf</small></span><i>›</i></button>
-        <button class="tool-row" id="backupBtn"><span><b>立即備份</b><small>匯出 JSON，包含名片、照片與互動紀錄</small></span><i>›</i></button>
-        <button class="tool-row" id="restoreBtn"><span><b>恢復備份</b><small>從 JSON 加入／更新資料</small></span><i>›</i></button>
+        <button class="tool-row" id="backupBtn"><span><b>備份與資料安全</b><small>完整備份、恢復、上次備份狀態</small></span><i>›</i></button>
         <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
       </div>
       <div class="about-card">
-        <strong>人脈名片 v0.3.0</strong>
+        <strong>人脈名片 v0.4.0</strong>
         <span>本機優先。OCR 在裝置上執行；名片資料不會因版本更新而清空。請定期備份。</span>
       </div>
     </section>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=0.3.0" defer></script>
+  <script src="app.js?v=0.4.0" defer></script>
 </body>
 </html>
