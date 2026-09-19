@@ -2,114 +2,99 @@
 
 手機優先、關係導向的人脈管理 PWA。
 
-## v0.5.0 — AI Import Center
+## v0.6.0 — Free-first AI Assistant
 
-這一版把 App 從「掃名片」再往前推成「把散落在不同 App、相簿與檔案裡的人脈一次收回來」。
+這一版把 AI 使用方式改成「免費優先」。預設不呼叫 OpenAI API，也不會因為打開 AI 助理而產生額外 API 費用。
 
 ### 已完成
 
-#### AI 匯入中心
-- 首頁主入口改成「AI 匯入中心」
-- 名片照片可從相簿一次多選，直接送進待整理匣
-- 支援匯入：
-  - CSV
-  - Excel (.xlsx / .xls)
-  - vCard (.vcf)
-  - JSON
-  - 圖片
-- PDF 可被辨識為待處理來源，但真正拆解內容仍等待 ChatGPT Vision 後端
-- 自動偵測來源 App / 檔名並保留來源資訊
-- 智慧欄位對應：例如 Full Name → 姓名、Organization → 公司、Tel Work → 公司電話
-- 匯入前預覽：
-  - 偵測總數
-  - 可直接匯入
-  - 疑似重複
-  - 需要確認
-- 可用資料才會被批次加入，疑似重複與缺姓名資料暫不自動寫入
-
-#### 自動分類
-- 保留「原始匯入資料」與「衍生分類」分層
-- 本機智慧規則可初步分類：
-  - 公部門
-  - 工程顧問
-  - 建設／開發
-  - 學術研究
-  - 金融
-  - 一般企業
-- 專業領域可初步標示：
-  - 交通運輸
-  - 道路
-  - 停車
-  - 自行車
-  - 都市規劃
-  - 軌道運輸
-- 衍生分類可被全文搜尋，但不覆蓋原始資料
-
-#### 去重與匯入批次
-- Email 優先比對
-- 手機號碼比對
-- 姓名＋公司比對
-- 同一匯入檔內重複偵測
-- 每次正式匯入都建立 Batch
-- 最近匯入可查看
-- 可「復原」某次匯入，刪除該批次新建立的人脈
-
-#### Capture Inbox
-- 拍照後先保存，不必等待 OCR
-- 連續掃描
-- 相簿多張匯入
-- App 開著時依序處理
-- 中途離開後資料仍保留，下次開啟續跑
-- 本機 OCR 暫時保留作為 fallback
-
-#### 備份與資料安全
-- 完整 JSON 備份包含：
-  - 人脈資料
+#### AI 人脈助理
+- 首頁主入口改成「AI 人脈助理」
+- 預設為「免費模式」
+- 可加入：
   - 名片照片
-  - 互動紀錄
-  - 待整理名片
-  - 我的數位名片
-  - App 設定
-  - 匯入批次歷史
-- schema version
-- 合併恢復
-- 整份取代
-- 整份取代前先建立「恢復前備份」
-- iPhone 分享表可存到 iCloud Drive / Google Drive
+  - PDF
+  - Excel / CSV
+  - vCard
+  - JSON
+  - 文字檔
+- 可補充情境，例如：
+  - 這些都是今天台中港會議認識的
+  - 全部標記新北、交通工程
+- App 會自動產生 Little Days 專用的 ChatGPT 整理指令
+- 支援 iPhone 分享表，把附件與整理指令一起交給 ChatGPT
+- 若分享附件不支援，會改成複製整理指令供手動貼到 ChatGPT
+
+#### ChatGPT 結果回填
+- 可直接貼上 ChatGPT 回傳的 JSON
+- 也可選擇 ChatGPT 產生的 JSON 檔
+- 單一人物：
+  - 直接回填姓名、公司、部門、職稱、手機、公司電話、Email、地址、網站、場合、專案、備註與標籤
+  - 再由使用者確認後儲存
+- 多位人物：
+  - 自動送進匯入預覽
+  - 去重
+  - 標記需要確認的項目
+  - 批次加入人脈資料庫
+- 保留來源為 ChatGPT
+- 保留 AI 信心資訊與 needsConfirmation
+
+#### API 費用防呆
+- 全自動 API 模式不是預設
+- 點選 API 模式時會先出現明顯的費用警示視窗
+- 明確說明 OpenAI API 與 ChatGPT 訂閱分開計費
+- 必須主動勾選「我知道 API 可能另外收費」
+- 未勾選時不能繼續
+- 即使確認，目前也只會進入「尚未連線」頁面
+- v0.6 不會偷偷呼叫任何付費 OpenAI API
+- 真正建立後端與 API Key 前，仍不會產生 API 使用費
+
+#### 原有功能保留
+- 檔案匯入中心
+- CSV / Excel / vCard / JSON 匯入
+- 智慧欄位對應
+- 重複資料偵測
+- 匯入批次與整批復原
+- 待整理名片
+- 本機 OCR fallback
+- 人脈搜尋
+- 標籤 / 最愛 / 追蹤
+- 互動紀錄
+- 數位名片
+- 完整 JSON 備份 / 恢復
 - CSV 匯出
-- App 更新不清空 IndexedDB
+
+### 免費模式使用流程
+
+1. 打開「AI 人脈助理」
+2. 加入照片或檔案
+3. 可補充認識場合 / 專案 / 標籤需求
+4. 按「免費交給 ChatGPT 整理」
+5. 在 iPhone 分享表選 ChatGPT
+6. ChatGPT 依 Little Days 格式回傳 JSON
+7. 回到 App，貼上 JSON 或選 JSON 檔
+8. App 自動回填或進入批次匯入預覽
 
 ### 尚未完成
 
-#### ChatGPT / OpenAI Vision
-目前還沒有把 OpenAI API key 暴露在前端。真正的下一階段是：
+#### 全自動 OpenAI API
+未來若使用者明確同意付費方案，才會再做：
+- 安全 Serverless 後端
+- OpenAI API Key 保護
+- App 內直接送照片 / PDF / 表格到模型
+- Structured Output
+- 自動回填，不需手動來回 ChatGPT
+- API 使用量 / 月預算 / 停用上限
 
-照片 / PDF
-→ 安全後端
-→ OpenAI Vision
-→ Structured Output
-→ 名稱、公司、部門、職稱、手機、公司電話、Email、地址、網站
-→ 信心值
-→ 回填 AI Inbox 草稿
-
-這需要 Serverless 後端（例如 Cloudflare Worker / Vercel Function / Supabase Edge Function）保護 API key。
-
-#### AI 級欄位理解與分類
-目前 CSV / Excel 的欄位對應與分類是本機智慧規則，不是 LLM。接上 OpenAI 後再升級為：
-- 任意欄名理解
-- PDF / 圖片內容理解
-- 更好的公司類型與專業領域分類
-- 自動標籤
-- 自動判斷疑似同一人物
-- 低信心欄位只要求使用者確認
+目前沒有設定這些功能，因此 v0.6 的 AI 路徑預設是免費 ChatGPT Bridge。
 
 #### 其他後續
-- iPhone Share Extension：直接從「照片 / 檔案」分享進 App
-- 真正跨裝置雲端同步
-- 原生 iOS 文件掃描 / VisionKit
+- iPhone Share Extension
+- 原生 iOS VisionKit
+- 更完整重複人物合併介面
+- PDF 多頁 / 多名片拆分
+- 跨裝置雲端同步
 - Apple Wallet .pkpass
-- 更完整的重複資料合併介面
-- PDF 多頁／多名片智慧拆分
 
 ## 部署
 
