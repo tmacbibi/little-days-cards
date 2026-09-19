@@ -1,1 +1,1 @@
-(()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='v04.css?v=0.4.0';document.head.appendChild(css);const s=document.createElement('script');s.src='v04.js?v=0.4.0';s.defer=true;document.head.appendChild(s)})();
+(()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='v05.css?v=0.5.0';document.head.appendChild(css);const s=document.createElement('script');s.src='v05.js?v=0.5.0';s.defer=true;document.head.appendChild(s)})();
