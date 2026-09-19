@@ -239,28 +239,108 @@ async function seedDemo(){const a=[{name:'陳怡君',company:'新北市政府',t
 function setFilter(f){activeFilter=f;activeCategory='';document.querySelectorAll('.filter-chip').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));document.querySelectorAll('.nav-item[data-nav]').forEach(b=>b.classList.remove('active'));if(f==='all')document.querySelector('[data-nav="contacts"]')?.classList.add('active');if(f==='favorite')document.querySelector('[data-nav="favorites"]')?.classList.add('active');if(f==='followup')document.querySelector('[data-nav="followup"]')?.classList.add('active');render();window.scrollTo({top:0,behavior:'smooth'})}
 
 function bind(){
- $('aiAssistantBtn').onclick=openAiAssistant;$('quickAddBtn').onclick=openQuick;$('emptyScanBtn').onclick=openAiAssistant;$('emptyAddBtn').onclick=openQuick;$('fabAdd').onclick=()=>openDlg('captureChoiceDialog');$('choiceAiBtn').onclick=openAiAssistant;$('choiceScanBtn').onclick=openScan;$('choiceImportBtn').onclick=openImportCenter;$('choiceQuickBtn').onclick=openQuick;
- $('categoryBtn').onclick=openCategories;$('categoryManageBtn').onclick=openCategories;$('categoryToolBtn').onclick=openCategories;$('healthCheckBtn').onclick=openHealth;$('healthToolBtn').onclick=openHealth;$('categoryAllBtn').onclick=()=>selectCategory('');$('categoryList').onclick=e=>{const b=e.target.closest('[data-category-key]');if(b)selectCategory(b.dataset.categoryKey)};$('companyCategoryList').onclick=e=>{const b=e.target.closest('[data-category-key]');if(b)selectCategory(b.dataset.categoryKey)};$('alphabetRail').onclick=e=>{const b=e.target.closest('[data-alpha-jump]');if(b)jumpAlpha(b.dataset.alphaJump)};$('healthSummary').onclick=e=>{const b=e.target.closest('[data-health-type]');if(b)renderHealth(b.dataset.healthType)};$('healthDetailList').onclick=e=>{const b=e.target.closest('[data-contact-id]');if(b){closeDlg('healthDialog');showDetail(b.dataset.contactId)}};
- $('contactForm').addEventListener('submit',saveForm);$('deleteBtn').onclick=delCurrent;
- $('takePhotoBtn').onclick=()=>{captureTarget='edit';$('cameraInput').click()};$('choosePhotoBtn').onclick=()=>{captureTarget='edit';$('photoInput').click()};$('ocrBtn').onclick=runOCR;
- $('batchCameraBtn').onclick=()=>{captureTarget='batch';$('cameraInput').click()};$('batchAlbumBtn').onclick=()=>{captureTarget='batch';$('photoInput').click()};$('batchDoneBtn').onclick=()=>{closeDlg('scanBatchDialog');toast(batchCaptured?'已收下 '+batchCaptured+' 張，會繼續整理':'已完成')};
+ $('aiAssistantBtn').onclick=openAiAssistant;
+ $('quickAddBtn').onclick=openQuick;
+ $('emptyScanBtn').onclick=openAiAssistant;
+ $('emptyAddBtn').onclick=openQuick;
+ $('fabAdd').onclick=()=>openDlg('captureChoiceDialog');
+ $('choiceAiBtn').onclick=openAiAssistant;
+ $('choiceScanBtn').onclick=openScan;
+ $('choiceImportBtn').onclick=openImportCenter;
+ $('choiceQuickBtn').onclick=openQuick;
+
+ $('toolsTopBtn').onclick=()=>openDlg('toolsDialog');
+ $('openAllCategoriesBtn').onclick=openCategories;
+ $('categoryToolBtn').onclick=openCategories;
+ $('healthCheckBtn').onclick=openHealth;
+ $('healthToolBtn').onclick=openHealth;
+ $('categoryAllBtn').onclick=()=>selectCategory('');
+ $('categoryList').onclick=e=>{const b=e.target.closest('[data-category-key]');if(b)selectCategory(b.dataset.categoryKey)};
+ $('companyCategoryList').onclick=e=>{const b=e.target.closest('[data-category-key]');if(b)selectCategory(b.dataset.categoryKey)};
+ $('homeCategoryRail').onclick=e=>{const b=e.target.closest('[data-home-category]');if(b)selectCategory(b.dataset.homeCategory||'')};
+ $('alphabetRail').onclick=e=>{const b=e.target.closest('[data-alpha-jump]');if(b)jumpAlpha(b.dataset.alphaJump)};
+ $('healthSummary').onclick=e=>{const b=e.target.closest('[data-health-type]');if(b)renderHealth(b.dataset.healthType)};
+ $('healthDetailList').onclick=async e=>{
+   const confirmBtn=e.target.closest('[data-confirm-ai-id]');
+   if(confirmBtn){await confirmAiContactById(confirmBtn.dataset.confirmAiId);return}
+   const b=e.target.closest('[data-contact-id]');
+   if(b){closeDlg('healthDialog');showDetail(b.dataset.contactId)}
+ };
+
+ $('contactForm').addEventListener('submit',saveForm);
+ $('deleteBtn').onclick=delCurrent;
+ $('takePhotoBtn').onclick=()=>{captureTarget='edit';$('cameraInput').click()};
+ $('choosePhotoBtn').onclick=()=>{captureTarget='edit';$('photoInput').click()};
+ $('ocrBtn').onclick=runOCR;
+ $('batchCameraBtn').onclick=()=>{captureTarget='batch';$('cameraInput').click()};
+ $('batchAlbumBtn').onclick=()=>{captureTarget='batch';$('photoInput').click()};
+ $('batchDoneBtn').onclick=()=>{closeDlg('scanBatchDialog');toast(batchCaptured?'已收下 '+batchCaptured+' 張，會繼續整理':'已完成')};
+
  $('cameraInput').addEventListener('change',async e=>{const file=e.target.files[0];if(captureTarget==='batch')await addScanToInbox(file);else await readPhoto(file);e.target.value='';captureTarget='edit'});
  $('photoInput').addEventListener('change',async e=>{const files=[...e.target.files];if(captureTarget==='batch'){for(const file of files)await addScanToInbox(file)}else if(captureTarget==='importphotos'){for(const file of files)await enqueuePhotoToInbox(file,{kind:'photo-import',app:'相簿匯入',fileName:file.name});await renderScanInbox();if(files.length)toast('已把 '+files.length+' 張照片送進待整理匣')}else if(files[0])await readPhoto(files[0]);e.target.value='';captureTarget='edit'});
  $('removePhotoBtn').onclick=()=>{$('photoData').value='';$('originalPhotoData').value='';$('ocrRawText').value='';$('photoPreview').innerHTML='<span class="photo-placeholder-icon">▣</span><span>拍一張名片，讓我幫你讀</span>';$('photoPreserveStatus').classList.add('hidden');$('removePhotoBtn').classList.add('hidden');$('ocrBtn').classList.add('hidden');$('rawOcrDetails').classList.add('hidden')};
- $('aiAttachBtn').onclick=()=>$('aiFilesInput').click();$('aiFilesInput').onchange=e=>{aiFiles=[...aiFiles,...e.target.files];renderAiFiles();e.target.value=''};$('aiAttachmentList').onclick=e=>{const b=e.target.closest('[data-remove-ai-file]');if(!b)return;aiFiles.splice(Number(b.dataset.removeAiFile),1);renderAiFiles()};$('aiFreeSendBtn').onclick=shareFreeAi;$('aiClipboardBtn').onclick=applyAiClipboard;$('aiResultFileBtn').onclick=()=>$('aiResultFileInput').click();$('aiResultFileInput').onchange=async e=>{await readAiResultFile(e.target.files[0]);e.target.value=''};$('aiApplyResultBtn').onclick=()=>applyAiPayloadText($('aiResultPaste').value);
- $('paidModeBtn').onclick=()=>{closeDlg('aiAssistantDialog');$('apiCostAck').checked=false;$('continueApiBtn').disabled=true;openDlg('apiCostDialog')};$('apiCostAck').onchange=e=>$('continueApiBtn').disabled=!e.target.checked;$('keepFreeBtn').onclick=()=>{closeDlg('apiCostDialog');openDlg('aiAssistantDialog')};$('continueApiBtn').onclick=()=>{if(!$('apiCostAck').checked)return;closeDlg('apiCostDialog');openDlg('apiSetupDialog')};$('backToFreeBtn').onclick=()=>{closeDlg('apiSetupDialog');openDlg('aiAssistantDialog')};
- $('importPhotosBtn').onclick=()=>{captureTarget='importphotos';$('photoInput').click()};$('importFilesBtn').onclick=()=>$('importFilesInput').click();$('importFilesInput').onchange=async e=>{await processImportFiles([...e.target.files]);e.target.value=''};
- $('clearImportPreviewBtn').onclick=resetImportPreview;$('cancelImportBtn').onclick=resetImportPreview;$('confirmImportBtn').onclick=confirmImport;$('importHistoryList').onclick=e=>{const b=e.target.closest('[data-rollback-batch]');if(b)rollbackImportBatch(b.dataset.rollbackBatch)};
- $('voiceNoteBtn').onclick=startVoice;document.querySelectorAll('#contextSuggestions button').forEach(b=>b.onclick=()=>{$('context').value=b.dataset.context;$('advancedDetails').open=true;toast('已記為「'+b.dataset.context+'」')});
- document.querySelectorAll('[data-close-dialog]').forEach(b=>b.onclick=()=>closeDlg(b.dataset.closeDialog));document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
- $('contactsList').onclick=e=>{const card=e.target.closest('.contact-card');if(card)showDetail(card.dataset.id)};$('scanInboxList').onclick=e=>{const card=e.target.closest('[data-scan-id]');if(card)reviewInboxItem(card.dataset.scanId)};
- $('searchInput').oninput=()=>{$('searchInput').parentElement.classList.toggle('has-text',!!$('searchInput').value);render()};$('clearSearch').onclick=()=>{$('searchInput').value='';$('searchInput').parentElement.classList.remove('has-text');render();$('searchInput').focus()};$('sortSelect').onchange=render;
- document.querySelectorAll('.filter-chip').forEach(b=>b.onclick=()=>setFilter(b.dataset.filter));document.querySelectorAll('[data-jump-filter]').forEach(b=>b.onclick=()=>setFilter(b.dataset.jumpFilter));document.querySelectorAll('.nav-item[data-nav]').forEach(b=>b.onclick=()=>{const n=b.dataset.nav;if(n==='contacts')setFilter('all');else if(n==='followup')setFilter('followup');else if(n==='favorites')setFilter('favorite');else if(n==='tools')openDlg('toolsDialog')});
- $('detailAiConfirmBtn').onclick=confirmAiContact;$('detailFavoriteBtn').onclick=toggleFavorite;$('detailEditBtn').onclick=editDetail;$('detailShareBtn').onclick=shareCurrent;$('calendarBtn').onclick=addCalendar;$('addInteractionBtn').onclick=()=>{$('interactionDate').value=today();$('interactionComposer').classList.remove('hidden')};$('cancelInteractionBtn').onclick=()=>$('interactionComposer').classList.add('hidden');$('saveInteractionBtn').onclick=saveInteraction;
- $('myCardBtn').onclick=()=>{fillMyCard();openDlg('myCardDialog')};$('myCardToolBtn').onclick=()=>{closeDlg('toolsDialog');fillMyCard();openDlg('myCardDialog')};$('myCardForm').onsubmit=saveMyCard;$('shareMyCardBtn').onclick=shareMyCard;
- $('aiAssistantToolBtn').onclick=openAiAssistant;$('importCenterToolBtn').onclick=openImportCenter;$('backupBtn').onclick=openBackupCenter;$('openBackupCenterBtn').onclick=openBackupCenter;$('fullBackupBtn').onclick=backup;
- $('mergeRestoreBtn').onclick=()=>{restoreMode='merge';$('restoreInput').click()};$('replaceRestoreBtn').onclick=()=>{restoreMode='replace';$('restoreInput').click()};$('restoreInput').onchange=async e=>{await restoreFile(e.target.files[0],restoreMode);e.target.value=''};
- $('csvBtn').onclick=exportCsv;$('seedDemoBtn').onclick=seedDemo
+
+ $('aiAttachBtn').onclick=()=>$('aiFilesInput').click();
+ $('aiFilesInput').onchange=async e=>{const files=[...e.target.files];e.target.value='';if(files.length){await prepareAiAttachments(files);toast('已保留原始照片並準備名片裁切版')}};
+ $('aiAttachmentList').onclick=e=>{const b=e.target.closest('[data-remove-ai-file]');if(!b)return;const idx=Number(b.dataset.removeAiFile);aiFiles.splice(idx,1);aiPreparedImages.splice(idx,1);renderAiFiles()};
+ $('aiFreeSendBtn').onclick=shareFreeAi;
+ $('aiClipboardBtn').onclick=applyAiClipboard;
+ $('aiResultFileBtn').onclick=()=>$('aiResultFileInput').click();
+ $('aiResultFileInput').onchange=async e=>{await readAiResultFile(e.target.files[0]);e.target.value=''};
+ $('aiApplyResultBtn').onclick=()=>applyAiPayloadText($('aiResultPaste').value);
+
+ $('paidModeBtn').onclick=()=>{closeDlg('aiAssistantDialog');$('apiCostAck').checked=false;$('continueApiBtn').disabled=true;openDlg('apiCostDialog')};
+ $('apiCostAck').onchange=e=>$('continueApiBtn').disabled=!e.target.checked;
+ $('keepFreeBtn').onclick=()=>{closeDlg('apiCostDialog');openDlg('aiAssistantDialog')};
+ $('continueApiBtn').onclick=()=>{if(!$('apiCostAck').checked)return;closeDlg('apiCostDialog');openDlg('apiSetupDialog')};
+ $('backToFreeBtn').onclick=()=>{closeDlg('apiSetupDialog');openDlg('aiAssistantDialog')};
+
+ $('importPhotosBtn').onclick=()=>{captureTarget='importphotos';$('photoInput').click()};
+ $('importFilesBtn').onclick=()=>$('importFilesInput').click();
+ $('importFilesInput').onchange=async e=>{await processImportFiles([...e.target.files]);e.target.value=''};
+ $('clearImportPreviewBtn').onclick=resetImportPreview;
+ $('cancelImportBtn').onclick=resetImportPreview;
+ $('confirmImportBtn').onclick=confirmImport;
+ $('importHistoryList').onclick=e=>{const b=e.target.closest('[data-rollback-batch]');if(b)rollbackImportBatch(b.dataset.rollbackBatch)};
+
+ $('voiceNoteBtn').onclick=startVoice;
+ document.querySelectorAll('#contextSuggestions button').forEach(b=>b.onclick=()=>{$('context').value=b.dataset.context;$('advancedDetails').open=true;toast('已記為「'+b.dataset.context+'」')});
+ document.querySelectorAll('[data-close-dialog]').forEach(b=>b.onclick=()=>closeDlg(b.dataset.closeDialog));
+ document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+
+ $('contactsList').onclick=e=>{const card=e.target.closest('.contact-card');if(card)showDetail(card.dataset.id)};
+ $('scanInboxList').onclick=e=>{const card=e.target.closest('[data-scan-id]');if(card)reviewInboxItem(card.dataset.scanId)};
+ $('searchInput').oninput=()=>{$('searchInput').parentElement.classList.toggle('has-text',!!$('searchInput').value);render()};
+ $('clearSearch').onclick=()=>{$('searchInput').value='';$('searchInput').parentElement.classList.remove('has-text');render();$('searchInput').focus()};
+ $('sortSelect').onchange=render;
+ document.querySelectorAll('.filter-chip').forEach(b=>b.onclick=()=>setFilter(b.dataset.filter));
+ document.querySelectorAll('[data-jump-filter]').forEach(b=>b.onclick=()=>setFilter(b.dataset.jumpFilter));
+
+ $('detailAiConfirmBtn').onclick=confirmAiContact;
+ $('detailFavoriteBtn').onclick=toggleFavorite;
+ $('detailEditBtn').onclick=editDetail;
+ $('detailShareBtn').onclick=shareCurrent;
+ $('calendarBtn').onclick=addCalendar;
+ $('addInteractionBtn').onclick=()=>{$('interactionDate').value=today();$('interactionComposer').classList.remove('hidden')};
+ $('cancelInteractionBtn').onclick=()=>$('interactionComposer').classList.add('hidden');
+ $('saveInteractionBtn').onclick=saveInteraction;
+
+ $('myCardBtn').onclick=()=>{fillMyCard();openDlg('myCardDialog')};
+ $('myCardToolBtn').onclick=()=>{closeDlg('toolsDialog');fillMyCard();openDlg('myCardDialog')};
+ $('myCardForm').onsubmit=saveMyCard;
+ $('shareMyCardBtn').onclick=shareMyCard;
+
+ $('aiAssistantToolBtn').onclick=openAiAssistant;
+ $('importCenterToolBtn').onclick=openImportCenter;
+ $('backupBtn').onclick=openBackupCenter;
+ $('openBackupCenterBtn').onclick=openBackupCenter;
+ $('fullBackupBtn').onclick=backup;
+ $('mergeRestoreBtn').onclick=()=>{restoreMode='merge';$('restoreInput').click()};
+ $('replaceRestoreBtn').onclick=()=>{restoreMode='replace';$('restoreInput').click()};
+ $('restoreInput').onchange=async e=>{await restoreFile(e.target.files[0],restoreMode);e.target.value=''};
+ $('csvBtn').onclick=exportCsv;
+ $('seedDemoBtn').onclick=seedDemo
 }
+
 async function init(){try{db=await openDB();bind();await reload();setTimeout(processScanQueue,700);if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{})}catch(e){console.error(e);alert('無法啟動本機資料庫，請確認瀏覽器允許網站儲存資料。')}}
 init();
