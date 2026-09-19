@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="人脈名片" />
   <title>人脈名片</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.6.0" />
-  <link rel="icon" href="icons/icon-192.png?v=0.6.0" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.7.0" />
+  <link rel="icon" href="icons/icon-192.png?v=0.7.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -20,22 +20,25 @@
         <div class="eyebrow">Little Days</div>
         <h1>人脈名片</h1>
       </div>
-      <button class="my-card-pill" id="myCardBtn" aria-label="我的名片">
-        <span class="mini-card-icon">⌁</span><span>我的名片</span>
-      </button>
+      <div class="topbar-actions">
+        <button class="topbar-mini" id="categoryBtn" aria-label="分類">☰</button>
+        <button class="my-card-pill" id="myCardBtn" aria-label="我的名片">
+          <span class="mini-card-icon">⌁</span><span>我的名片</span>
+        </button>
+      </div>
     </header>
 
     <main>
       <section class="capture-panel">
         <div class="capture-copy">
-          <div class="capture-kicker">今天遇到誰？</div>
-          <h2>先收進來，細節以後再補。</h2>
-          <p>拍完立即收進待整理匣，不用站在原地等辨識；一次拿很多張也能連續掃。</p>
+          <div class="capture-kicker">少做一點，AI 多做一點</div>
+          <h2>丟進來，我幫你整理。</h2>
+          <p>照片、Excel、PDF 都可以。預設走免費 AI 流程，你只處理真的需要確認的地方。</p>
         </div>
         <div class="capture-actions">
           <button class="action-tile scan" id="aiAssistantBtn">
             <span class="action-symbol">✦</span>
-            <span><b>AI 人脈助理</b><small>預設免費 · 丟照片或檔案給 ChatGPT</small></span>
+            <span><b>交給 AI 整理</b><small>預設免費 · 目前推薦 Claude</small></span>
           </button>
           <button class="action-tile quick" id="quickAddBtn">
             <span class="action-symbol">＋</span>
@@ -56,6 +59,11 @@
           <button class="filter-chip" data-filter="favorite">★ 最愛</button>
           <button class="filter-chip" data-filter="recent">最近新增</button>
         </div>
+      </section>
+
+      <section class="people-tools">
+        <button id="categoryManageBtn"><span>☰</span><b>分類</b><small id="categoryHint">依公司、領域快速找人</small></button>
+        <button id="healthCheckBtn"><span>✦</span><b>AI 人脈健檢</b><small id="healthHint">只看需要你處理的事</small><i id="healthBadge" class="hidden">0</i></button>
       </section>
 
       <section class="stats-strip" aria-label="統計">
@@ -107,14 +115,17 @@
         </select>
       </section>
 
-      <section id="contactsList" class="contacts-list" aria-live="polite"></section>
+      <div class="people-list-wrap">
+        <section id="contactsList" class="contacts-list" aria-live="polite"></section>
+        <nav id="alphabetRail" class="alphabet-rail" aria-label="姓名索引"></nav>
+      </div>
 
       <section id="emptyState" class="empty-state hidden">
         <div class="empty-icon">⌁</div>
         <h3>還沒有名片</h3>
-        <p>第一次先試著掃一張名片，或用快速新增建立聯絡人。</p>
+        <p>先丟一張名片照片給 AI，或用快速新增建立第一位人脈。</p>
         <div class="empty-actions">
-          <button class="primary-button" id="emptyScanBtn">掃描第一張</button>
+          <button class="primary-button" id="emptyScanBtn">交給 AI 整理</button>
           <button class="secondary-button" id="emptyAddBtn">快速新增</button>
         </div>
         <button class="ghost-button subtle" id="seedDemoBtn">載入示範資料</button>
@@ -145,17 +156,46 @@
         <div><div class="eyebrow">ADD CONTACT</div><h2>新增人脈</h2></div>
         <button type="button" class="icon-button" data-close-dialog="captureChoiceDialog">×</button>
       </div>
-      <div class="choice-grid">
-        <button class="choice-card scan" id="choiceAiBtn">
-          <span class="choice-icon">✦</span><b>AI 人脈助理</b><small>預設免費模式，把照片或檔案交給 ChatGPT 整理</small>
-        </button>
-        <button class="choice-card" id="choiceScanBtn">
-          <span class="choice-icon">▣</span><b>現場拍一張</b><small>先收進待整理匣，不必等辨識</small>
-        </button>
-        <button class="choice-card" id="choiceQuickBtn">
-          <span class="choice-icon">＋</span><b>快速新增</b><small>沒有名片，也可以先記住這個人</small>
-        </button>
+      <div class="simple-add-list">
+        <button class="simple-add primary" id="choiceAiBtn"><span>✦</span><div><b>交給 AI 整理</b><small>照片、PDF、Excel；預設免費</small></div><i>›</i></button>
+        <button class="simple-add" id="choiceScanBtn"><span>▣</span><div><b>拍照暫存</b><small>先拍下來，晚點再整理</small></div><i>›</i></button>
+        <button class="simple-add" id="choiceImportBtn"><span>↥</span><div><b>匯入既有資料</b><small>CSV、Excel、vCard、JSON</small></div><i>›</i></button>
+        <button class="simple-add" id="choiceQuickBtn"><span>＋</span><div><b>手動快速新增</b><small>只填姓名與必要聯絡方式</small></div><i>›</i></button>
       </div>
+    </section>
+  </dialog>
+
+  <dialog id="categoryDialog" class="sheet-dialog side-dialog">
+    <section class="sheet-card category-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">CATEGORIES</div><h2>人脈分類</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="categoryDialog">×</button>
+      </div>
+      <button class="category-all active" id="categoryAllBtn"><span>所有人脈</span><b id="categoryAllCount">0</b></button>
+      <div class="category-group">
+        <div class="category-group-title">AI / 標籤分類</div>
+        <div id="categoryList" class="category-list"></div>
+      </div>
+      <div class="category-group">
+        <div class="category-group-title">公司 / 機關</div>
+        <div id="companyCategoryList" class="category-list"></div>
+      </div>
+      <div class="info-note"><strong>一個人可以同時屬於多個分類</strong><span>分類主要來自公司、標籤與 AI 衍生資料，不會改動名片原始內容。</span></div>
+    </section>
+  </dialog>
+
+  <dialog id="healthDialog" class="sheet-dialog">
+    <section class="sheet-card health-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">AI HEALTH CHECK</div><h2>人脈健檢</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="healthDialog">×</button>
+      </div>
+      <div class="health-hero"><span>✦</span><div><strong id="healthHeroTitle">資料很乾淨</strong><small id="healthHeroText">沒有需要你處理的項目</small></div></div>
+      <div id="healthSummary" class="health-summary"></div>
+      <div id="healthDetailList" class="health-detail-list"></div>
+      <div class="info-note"><strong>只處理例外</strong><span>健檢不會要求你整理全部資料，只把疑似重複、缺資料、AI 不確定或很久沒互動的人列出來。</span></div>
     </section>
   </dialog>
 
@@ -171,7 +211,7 @@
         <div class="ai-mode-icon">✓</div>
         <div>
           <div class="ai-mode-title"><strong>免費模式</strong><span>預設</span></div>
-          <p>不呼叫 OpenAI API，不會產生額外 API 費用。把資料交給你現在使用的 ChatGPT，再把整理結果貼回 App。</p>
+          <p>不呼叫付費 API。把資料分享給手機裡可用的 AI App；目前你的 iPhone 可直接使用 Claude。</p>
         </div>
       </div>
 
@@ -187,7 +227,7 @@
       <div class="ai-chat">
         <div class="ai-bubble assistant">
           <span class="ai-avatar">✦</span>
-          <div><strong>把資料丟給我</strong><p>名片照片、Excel、CSV、PDF、vCard 都可以。你也可以補一句「這些都是今天台中港會議認識的」。</p></div>
+          <div><strong>三步就好</strong><p>① 加資料　② 分享給 AI　③ 回來按「從剪貼簿回填」。不用存 JSON、也不用找檔案。</p></div>
         </div>
 
         <div id="aiAttachmentList" class="ai-attachment-list"></div>
@@ -201,24 +241,28 @@
 
         <button class="ai-free-send" id="aiFreeSendBtn">
           <span>✦</span>
-          <span><b>免費交給 ChatGPT 整理</b><small>會開啟分享選單；選 ChatGPT 後把結果貼回來</small></span>
+          <span><b>分享給 AI 整理</b><small>在分享選單選 Claude 或其他可用 AI App</small></span>
         </button>
 
         <div class="ai-return-box">
           <div class="ai-return-head">
-            <div><strong>ChatGPT 整理好了？</strong><span>貼上結果或選擇 ChatGPT 產生的 JSON</span></div>
+            <div><strong>AI 整理好了？</strong><span>在 AI App 複製它回傳的結果，回來只按一次。</span></div>
           </div>
-          <textarea id="aiResultPaste" rows="5" placeholder='把 ChatGPT 回傳的 JSON 貼在這裡…'></textarea>
-          <div class="ai-return-actions">
-            <button class="secondary-button" id="aiResultFileBtn">選 JSON 檔</button>
-            <button class="primary-button" id="aiApplyResultBtn">解析並回填</button>
-          </div>
+          <button class="ai-clipboard-return" id="aiClipboardBtn"><span>↙</span><div><b>從剪貼簿直接回填</b><small>不需要儲存檔案、不需要再匯入</small></div></button>
+          <details class="ai-manual-fallback">
+            <summary>剪貼簿讀不到？改用手動貼上</summary>
+            <textarea id="aiResultPaste" rows="5" placeholder='把 AI 回傳的 JSON 貼在這裡…'></textarea>
+            <div class="ai-return-actions">
+              <button class="secondary-button" id="aiResultFileBtn">選 JSON 檔</button>
+              <button class="primary-button" id="aiApplyResultBtn">解析並回填</button>
+            </div>
+          </details>
         </div>
       </div>
 
       <div class="info-note">
-        <strong>免費模式怎麼運作？</strong>
-        <span>App 不會偷偷呼叫付費 API。你把檔案分享給 ChatGPT，ChatGPT 整理成 Little Days 格式，再貼回 App；App 會自動進入匯入預覽、去重、分類並寫入欄位。</span>
+        <strong>免費模式不會偷偷扣費</strong>
+        <span>App 只負責把附件與 Little Days 整理指令分享出去。AI 回傳後，你複製結果並按一次「從剪貼簿直接回填」即可。</span>
       </div>
     </section>
   </dialog>
@@ -265,7 +309,7 @@
     <section class="sheet-card import-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <div><div class="eyebrow">AI IMPORT</div><h2>AI 匯入中心</h2></div>
+        <div><div class="eyebrow">FILE IMPORT</div><h2>檔案匯入</h2></div>
         <button type="button" class="icon-button" data-close-dialog="importDialog">×</button>
       </div>
 
@@ -314,8 +358,8 @@
       </section>
 
       <div class="info-note">
-        <strong>目前的 AI 邏輯</strong>
-        <span>這版先完成智慧欄位對應、去重、來源保留與自動分類。真正把照片 / PDF 交給 ChatGPT Vision 分析，等安全後端接好後再啟用。</span>
+        <strong>檔案匯入</strong>
+        <span>CSV / Excel / vCard / JSON 會先在本機整理與去重；需要視覺理解的照片與 PDF，建議改用「交給 AI 整理」。</span>
       </div>
     </section>
   </dialog>
@@ -564,19 +608,21 @@
       </div>
       <div class="tool-list">
         <button class="tool-row" id="myCardToolBtn"><span><b>我的數位名片</b><small>QR＋vCard，一鍵分享你的聯絡方式</small></span><i>›</i></button>
-        <button class="tool-row" id="aiAssistantToolBtn"><span><b>AI 人脈助理</b><small>預設免費，把照片／檔案交給 ChatGPT 整理</small></span><i>›</i></button>
-        <button class="tool-row" id="importCenterToolBtn"><span><b>檔案匯入中心</b><small>CSV、Excel、vCard、JSON、PDF</small></span><i>›</i></button>
+        <button class="tool-row" id="aiAssistantToolBtn"><span><b>AI 人脈助理</b><small>預設免費；目前推薦 Claude</small></span><i>›</i></button>
+        <button class="tool-row" id="healthToolBtn"><span><b>人脈健檢</b><small>重複、缺資料、待確認、久未聯絡</small></span><i>›</i></button>
+        <button class="tool-row" id="categoryToolBtn"><span><b>人脈分類</b><small>依公司、標籤與專業領域快速瀏覽</small></span><i>›</i></button>
+        <button class="tool-row" id="importCenterToolBtn"><span><b>檔案匯入</b><small>CSV、Excel、vCard、JSON</small></span><i>›</i></button>
         <button class="tool-row" id="backupBtn"><span><b>備份與資料安全</b><small>完整備份、恢復、上次備份狀態</small></span><i>›</i></button>
         <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
       </div>
       <div class="about-card">
-        <strong>人脈名片 v0.6.0</strong>
+        <strong>人脈名片 v0.7.0</strong>
         <span>本機優先。OCR 在裝置上執行；名片資料不會因版本更新而清空。請定期備份。</span>
       </div>
     </section>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=0.6.0" defer></script>
+  <script src="app.js?v=0.7.0" defer></script>
 </body>
 </html>
