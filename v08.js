@@ -27,7 +27,7 @@ const batchAll=()=>allFrom(batchStore()),batchPut=x=>putTo(batchStore('readwrite
 const inboxGet=id=>new Promise((res,rej)=>{const r=inboxStore().get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)});
 const batchGet=id=>new Promise((res,rej)=>{const r=batchStore().get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)});
 
-function initials(name=''){const p=name.trim().split(/\s+/).filter(Boolean);return !p.length?'名':p.length>1?(p[0][0]+p[p.length-1][0]).toUpperCase():p[0].slice(0,2).toUpperCase()}
+function initials(name=''){const s=String(name||'').trim();return s?(s.charAt(0).toUpperCase()):'名'}
 function fmtDate(v){if(!v)return'';try{return new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'short',day:'numeric'}).format(new Date(v+'T12:00:00'))}catch(e){return v}}
 function daysUntil(v){if(!v)return null;return Math.round((new Date(v+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5)}
 function touchLabel(c){const i=lastInteraction(c);if(!i)return'';const d=daysUntil(i.date);if(d===0)return'今天互動';if(d===-1)return'昨天互動';if(d<0&&d>=-7)return Math.abs(d)+' 天前互動';return fmtDate(i.date)}
