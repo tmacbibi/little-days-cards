@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="人脈名片" />
   <title>人脈名片</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.4.0" />
-  <link rel="icon" href="icons/icon-192.png?v=0.4.0" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png?v=0.5.0" />
+  <link rel="icon" href="icons/icon-192.png?v=0.5.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -33,9 +33,9 @@
           <p>拍完立即收進待整理匣，不用站在原地等辨識；一次拿很多張也能連續掃。</p>
         </div>
         <div class="capture-actions">
-          <button class="action-tile scan" id="scanBtn">
-            <span class="action-symbol">▣</span>
-            <span><b>掃描名片</b><small>先收下 → 背景整理</small></span>
+          <button class="action-tile scan" id="importCenterBtn">
+            <span class="action-symbol">↥</span>
+            <span><b>AI 匯入中心</b><small>照片、Excel、CSV、vCard…</small></span>
           </button>
           <button class="action-tile quick" id="quickAddBtn">
             <span class="action-symbol">＋</span>
@@ -134,6 +134,7 @@
   <input id="photoInput" type="file" accept="image/*" multiple hidden />
   <input id="restoreInput" type="file" accept="application/json,.json" hidden />
   <input id="vcfInput" type="file" accept=".vcf,text/vcard,text/x-vcard" multiple hidden />
+  <input id="importFilesInput" type="file" accept="image/*,.csv,.xlsx,.xls,.vcf,.json,.pdf,.txt,text/csv,application/json,application/pdf" multiple hidden />
 
   <dialog id="captureChoiceDialog" class="sheet-dialog compact-dialog">
     <section class="sheet-card compact-sheet">
@@ -143,12 +144,74 @@
         <button type="button" class="icon-button" data-close-dialog="captureChoiceDialog">×</button>
       </div>
       <div class="choice-grid">
-        <button class="choice-card scan" id="choiceScanBtn">
-          <span class="choice-icon">▣</span><b>掃描名片</b><small>拍照後自動辨識姓名、公司、電話與 Email</small>
+        <button class="choice-card scan" id="choiceImportBtn">
+          <span class="choice-icon">↥</span><b>AI 匯入中心</b><small>相簿、CSV、Excel、vCard、JSON、PDF 都從這裡進來</small>
+        </button>
+        <button class="choice-card" id="choiceScanBtn">
+          <span class="choice-icon">▣</span><b>現場拍一張</b><small>先收進待整理匣，不必等辨識</small>
         </button>
         <button class="choice-card" id="choiceQuickBtn">
-          <span class="choice-icon">＋</span><b>快速新增</b><small>不用名片，先記住這個人與聯絡方式</small>
+          <span class="choice-icon">＋</span><b>快速新增</b><small>沒有名片，也可以先記住這個人</small>
         </button>
+      </div>
+    </section>
+  </dialog>
+
+  <dialog id="importDialog" class="sheet-dialog">
+    <section class="sheet-card import-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div><div class="eyebrow">AI IMPORT</div><h2>AI 匯入中心</h2></div>
+        <button type="button" class="icon-button" data-close-dialog="importDialog">×</button>
+      </div>
+
+      <div class="import-hero">
+        <div class="import-symbol">✦</div>
+        <div>
+          <strong>把散落的人脈一次收回來</strong>
+          <span>照片、其他名片 App 匯出檔、Excel / CSV、vCard 都先交給匯入中心整理。</span>
+        </div>
+      </div>
+
+      <div class="import-entry-grid">
+        <button class="import-entry primary" id="importPhotosBtn">
+          <span>▣</span><b>匯入名片照片</b><small>可一次選多張，進待整理匣</small>
+        </button>
+        <button class="import-entry" id="importFilesBtn">
+          <span>↥</span><b>匯入其他資料</b><small>CSV、Excel、vCard、JSON、PDF</small>
+        </button>
+      </div>
+
+      <section id="importPreviewSection" class="import-preview hidden">
+        <div class="import-preview-head">
+          <div><div class="eyebrow">PREVIEW</div><h3 id="importPreviewTitle">匯入預覽</h3></div>
+          <button class="ghost-button" id="clearImportPreviewBtn">清除</button>
+        </div>
+        <div class="import-summary">
+          <div><strong id="importTotalCount">0</strong><span>偵測到</span></div>
+          <div><strong id="importReadyCount">0</strong><span>可匯入</span></div>
+          <div><strong id="importDuplicateCount">0</strong><span>疑似重複</span></div>
+          <div><strong id="importIssueCount">0</strong><span>需確認</span></div>
+        </div>
+        <div id="mappingNotice" class="mapping-notice hidden"></div>
+        <div id="importCandidateList" class="import-candidate-list"></div>
+        <div class="sheet-footer import-footer">
+          <button class="secondary-button" id="cancelImportBtn">取消</button>
+          <div class="footer-spacer"></div>
+          <button class="primary-button" id="confirmImportBtn">匯入可用資料</button>
+        </div>
+      </section>
+
+      <section class="import-history-section">
+        <div class="timeline-head">
+          <div><div class="eyebrow">HISTORY</div><h3>最近匯入</h3></div>
+        </div>
+        <div id="importHistoryList" class="import-history-list"></div>
+      </section>
+
+      <div class="info-note">
+        <strong>目前的 AI 邏輯</strong>
+        <span>這版先完成智慧欄位對應、去重、來源保留與自動分類。真正把照片 / PDF 交給 ChatGPT Vision 分析，等安全後端接好後再啟用。</span>
       </div>
     </section>
   </dialog>
@@ -397,18 +460,18 @@
       </div>
       <div class="tool-list">
         <button class="tool-row" id="myCardToolBtn"><span><b>我的數位名片</b><small>QR＋vCard，一鍵分享你的聯絡方式</small></span><i>›</i></button>
-        <button class="tool-row" id="importVcfBtn"><span><b>匯入 vCard</b><small>從 iPhone／其他名片工具匯入 .vcf</small></span><i>›</i></button>
+        <button class="tool-row" id="importCenterToolBtn"><span><b>AI 匯入中心</b><small>照片、CSV、Excel、vCard、JSON、PDF</small></span><i>›</i></button>
         <button class="tool-row" id="backupBtn"><span><b>備份與資料安全</b><small>完整備份、恢復、上次備份狀態</small></span><i>›</i></button>
         <button class="tool-row" id="csvBtn"><span><b>匯出 CSV</b><small>方便 Excel / Numbers 整理</small></span><i>›</i></button>
       </div>
       <div class="about-card">
-        <strong>人脈名片 v0.4.0</strong>
+        <strong>人脈名片 v0.5.0</strong>
         <span>本機優先。OCR 在裝置上執行；名片資料不會因版本更新而清空。請定期備份。</span>
       </div>
     </section>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=0.4.0" defer></script>
+  <script src="app.js?v=0.5.0" defer></script>
 </body>
 </html>
